@@ -1,5 +1,10 @@
 # CADCraft — instructions for agents
 
+> **clapp:** this is Arfium's fork of CADCraft as a Clatch app: one binary whose window is
+> the person's and whose CLI (`cadcraft <verb>`) is the agent's. How it works, the commands
+> (`npm run verify`, `npm run pack`) and the short list of upstream files it patches are in
+> [CLAPP.md](CLAPP.md). Everything below is upstream's own guidance and still applies.
+
 CADCraft is a clean-room, open-source, pure-Rust computer-aided design and drafting application targeting Autodesk AutoCAD parity — and superiority (speed, openness, agent control). It runs natively on macOS, Windows, Linux and FreeBSD, and on the web via WASM. Siblings with the same conventions: `../photocraft` (Photoshop-class), `../vectorcraft` (Illustrator), `../filmcraft` (Premiere), `../lightcraft` (Lightroom), `../pdfcraft` (Acrobat), `../effectcraft` (After Effects), `../designcraft` (InDesign).
 
 Standards and learnings shared across the crafting apps live in `../../craftrules` (or `storytold/craftrules`). Read its `AGENTS.md` at the start of a session, follow its standards, and contribute reusable learnings back there. Never code: repos don't share code.

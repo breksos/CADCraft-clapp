@@ -9,3 +9,7 @@
 *.swp
 /apps/cadcraft-web/dist/
 /.claude/worktrees/
+
+# clapp: the depot and its package are derived, never committed.
+/pkg/
+*.clapp

@@ -155,23 +155,13 @@ async fn dispatch(raw: Vec<String>) -> Res<()> {
         return Ok(());
     }
     // `cmd` passes its line through untouched: `--` or `""` mean something at the command line.
-    if verb == "cmd" {
-        // An empty argument is Enter; so is a literal `""`, which a shell passes when it was quoted.
-        let enter = |w: &String| w.is_empty() || w == "\"\"";
-        let text = raw[1..].iter().map(|w| if enter(w) { String::new() } else { w.clone() }).collect::<Vec<_>>().join(" ");
-        if text.trim().is_empty() && !raw[1..].iter().any(enter) {
-            return usage("cmd <command line>, such as: cmd circle 0,0 5");
-        }
-        let result = ask(json!({"verb": "cmd", "text": text})).await?;
-        show_cmd(&result);
-        return Ok(());
-    }
-    let a = Args::parse(raw, &["selected", "view", "metric", "sample", "json", "help"])?;
+    let a = if verb == "cmd" { Args { words: Vec::new(), flags: HashMap::new() } } else { Args::parse(raw.clone(), &["selected", "view", "metric", "sample", "json", "help"])? };
     if a.on("help") {
         println!("{HELP}");
         return Ok(());
     }
     let req = match verb.as_str() {
+        "cmd" => return command_line(&raw).await,
         "state" | "cancel" | "focus" | "close" => {
             a.at_most(1)?;
             json!({"verb": verb})
@@ -193,6 +183,20 @@ async fn dispatch(raw: Vec<String>) -> Res<()> {
     };
     let result = ask(req).await?;
     show(&verb, &a, &result);
+    Ok(())
+}
+
+/// `cmd`: the words after it, as one command line.
+async fn command_line(raw: &[String]) -> Res<()> {
+    // An empty argument is Enter; so is a literal `""`, which a shell passes when it was quoted.
+    let enter = |w: &String| w.is_empty() || w == "\"\"";
+    let words = raw.get(1..).unwrap_or_default();
+    let text = words.iter().map(|w| if enter(w) { String::new() } else { w.clone() }).collect::<Vec<_>>().join(" ");
+    if text.trim().is_empty() && !words.iter().any(enter) {
+        return usage("cmd <command line>, such as: cmd circle 0,0 5");
+    }
+    let result = ask(json!({"verb": "cmd", "text": text})).await?;
+    show_cmd(&result);
     Ok(())
 }
 
