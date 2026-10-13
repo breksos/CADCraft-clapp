@@ -1,0 +1,97 @@
+{
+  "manifestVersion": 1,
+  "type": "clapp",
+  "id": "com.arfium.cadcraft",
+  "name": "CADCraft",
+  "description": "2D drafting you and your agent do together: CADCraft, with a CLI into its live window.",
+  "about": "CADCraft, the open-source 2D CAD app written in Rust, with a second pair of hands. You draft in its window as you always would: the command line, snaps, layers, blocks, dimensions, hatches, layouts, real DWG and DXF files. Your agent works on the same drawing through its own commands: it reads entities and their geometry, types command lines just as you would, runs any of CADCraft's commands, and opens, saves, exports and imports drawings, and every change shows in your window as it happens, on the same undo history as yours. It keeps up with you, too: what you draw and what you select reach it, so 'fix these' means the entities you selected. It never types into a command you are in the middle of, never closes or overwrites work you have not saved, and never changes your settings or your clipboard. Unsaved work survives CADCraft being stopped: it comes back in the Drawing Recovery window. CADCraft is by ArtCraft (github.com/storytold/cadcraft), under the MIT or Apache-2.0 licence; this is Arfium's fork of it.",
+  "tags": [
+    "cad",
+    "dwg",
+    "dxf",
+    "drafting",
+    "agent"
+  ],
+  "version": "0.1.0",
+  "protocol": 2,
+  "icon": "assets/icon.png",
+  "launch": {
+    "macos": "bin/cadcraft",
+    "windows": "bin/cadcraft.exe",
+    "args": [
+      "app"
+    ]
+  },
+  "connector": {
+    "cli": "cadcraft",
+    "cliBin": "bin/cadcraft",
+    "commands": [
+      {
+        "name": "state",
+        "about": "the open drawings, the one in front and the command line - changes nothing"
+      },
+      {
+        "name": "read",
+        "about": "read entities and their geometry - changes nothing"
+      },
+      {
+        "name": "commands",
+        "about": "list CADCraft's commands and what each takes - changes nothing"
+      },
+      {
+        "name": "shot",
+        "about": "take a picture of the drawing - changes nothing"
+      },
+      {
+        "name": "cmd",
+        "about": "type a command line, as the person would"
+      },
+      {
+        "name": "cancel",
+        "about": "end the command the agent left running"
+      },
+      {
+        "name": "run",
+        "about": "run one of CADCraft's commands on the drawing; never files, settings or the clipboard"
+      },
+      {
+        "name": "new",
+        "about": "open a new drawing"
+      },
+      {
+        "name": "open",
+        "about": "open a drawing from your disk"
+      },
+      {
+        "name": "save",
+        "about": "save the drawing to your disk as DWG or DXF"
+      },
+      {
+        "name": "export",
+        "about": "write a copy as PDF, SVG, PNG, DXF or DWG to your disk"
+      },
+      {
+        "name": "import",
+        "about": "draw a DWG or DXF from your disk into the drawing"
+      },
+      {
+        "name": "focus",
+        "about": "bring the window to the front"
+      },
+      {
+        "name": "close",
+        "about": "quit CADCraft, only while nothing is unsaved"
+      }
+    ],
+    "signals": [
+      {
+        "id": "changed",
+        "type": "context"
+      },
+      {
+        "id": "selected",
+        "type": "buffered"
+      }
+    ]
+  }
+}

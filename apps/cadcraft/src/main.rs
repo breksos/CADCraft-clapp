@@ -11,9 +11,12 @@
 //!
 //! `log` records go to standard error and `<settings dir>/logs/cadcraft.log` (`RUST_LOG` sets the
 //! levels); see [`logging`] and [`config_dir`].
-#![cfg_attr(all(target_os = "windows", not(debug_assertions)), windows_subsystem = "windows")]
+// clapp: no `windows_subsystem = "windows"`. This one binary is also the agent's CLI
+// (`cadcraft <verb>`), and a GUI-subsystem image has no console to print to; Clatch starts the
+// window with CREATE_NO_WINDOW, so no console shows (clappkit/src/role.rs).
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
+mod clapp;
 mod control_server;
 mod desktop_theme;
 #[cfg(any(target_os = "windows", test))]
@@ -39,6 +42,10 @@ struct App {
     workspace_error: Option<String>,
     #[cfg(target_os = "macos")]
     native_menu: Option<native_menu::NativeMenu>,
+    /// clapp: what tells the agent about the person's actions.
+    observer: clapp::signals::Observer,
+    /// clapp: CADCraft's autosave, run seconds after a change.
+    recovery: clapp::recovery::Recovery,
 }
 
 impl App {
@@ -76,7 +83,14 @@ impl eframe::App for App {
             }
         }
         self.cad.system_animations = self.system_animations.current();
+        // clapp: the agent's requests run inside `logic` (its control queue), the person's actions
+        // everywhere else; what changed between a settle and the next observe was the person's.
+        self.observer.observe(&self.cad);
         self.cad.logic(ctx);
+        self.observer.settle(&self.cad);
+        self.observer.tick(&self.cad, ctx);
+        // clapp: here too, because eframe skips `ui` while the window is hidden or covered.
+        self.recovery.tick(&mut self.cad, ctx);
         self.spacemouse.poll(&mut self.cad, ctx);
         self.persist_workspace(false);
         if std::mem::take(&mut self.cad.quit_requested) {
@@ -91,6 +105,12 @@ impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.cad.ui(ui);
         self.persist_workspace(false);
+        // clapp: the person's input was handled just now, and an idle window may not draw another
+        // frame for a long time: tell the agent and keep the unsaved work from this frame.
+        let ctx = ui.ctx().clone();
+        self.observer.observe(&self.cad);
+        self.observer.tick(&self.cad, &ctx);
+        self.recovery.tick(&mut self.cad, &ctx);
     }
     /// A normal exit: the workspace is saved, and this run's autosave files are not needed (a
     /// crash leaves them for recovery).
@@ -172,6 +192,10 @@ fn config_dir_from(var: impl Fn(&str) -> Option<std::ffi::OsString>) -> Option<s
     if let Some(dir) = set("CADCRAFT_CONFIG_DIR") {
         return Some(dir);
     }
+    // clapp: under Clatch, the app's data directory, which uninstalling can erase whole.
+    if let Some(dir) = set("CLATCH_DATA_DIR") {
+        return Some(dir);
+    }
     if cfg!(target_os = "macos") {
         set("HOME").map(|h| h.join("Library/Application Support/CADCraft"))
     } else if cfg!(windows) {
@@ -225,7 +249,26 @@ fn control_flag(current: Option<u16>, value: Option<String>) -> Option<u16> {
     current
 }
 
+// clapp: one binary, two roles (`clapp/mod.rs`). `cadcraft app` (or a drawing, or nothing) is
+// the window, which runs only under Clatch; `cadcraft <verb>` is the agent's CLI.
 fn main() -> eframe::Result {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    match clapp::role(&args) {
+        clapp::Role::Version => {
+            println!("{}", version_string());
+            Ok(())
+        }
+        clapp::Role::Cli(args) => clapp::cli::main(args),
+        clapp::Role::Gui(args) => {
+            if clapp::must_relaunch() {
+                return Ok(());
+            }
+            window(args, clapp::wiring::start())
+        }
+    }
+}
+
+fn window(args: Vec<String>, wiring: clapp::wiring::Wiring) -> eframe::Result {
     // First, so every start-up record is captured; see `logging`.
     let logger = logging::install();
     // lossy, so a value that is not Unicode is reported like any other bad port instead of ignored
@@ -233,7 +276,7 @@ fn main() -> eframe::Result {
         control_port_from("CADCRAFT_CONTROL_PORT", std::env::var_os("CADCRAFT_CONTROL_PORT").map(|p| p.to_string_lossy().into_owned()));
     let mut files = Vec::new();
     let mut sample = false;
-    let mut args = std::env::args().skip(1);
+    let mut args = args.into_iter();
     while let Some(a) = args.next() {
         match a.as_str() {
             "--control" => control_port = control_flag(control_port, args.next()),
@@ -258,6 +301,14 @@ fn main() -> eframe::Result {
         }
     }
     install_io();
+    // clapp: Clatch runs one instance per app, so Drawing Recovery offers what a stopped one left
+    // at once, not after its lock goes stale.
+    if clapp::wired() {
+        cadcraft_engine::autosave::set_single_instance(true);
+    }
+    // clapp: the queue the agent's requests arrive on, taken by the start that creates the app.
+    let clapp::wiring::Wiring { rx: clapp_rx, tx: clapp_tx, ctx: clapp_ctx, control: clapp_control } = wiring;
+    let clapp_rx = std::cell::Cell::new(Some(clapp_rx));
     let surface = cadcraft_ui_egui::gpu::surface_config(std::env::var("CADCRAFT_VSYNC").ok().as_deref(), cfg!(all(unix, not(target_os = "macos"))));
     let mut options = eframe::NativeOptions {
         // The crosshair is drawn by the app: present without a queue on Linux/BSD, where X11
@@ -346,9 +397,21 @@ fn main() -> eframe::Result {
             if let Some(rs) = &cc.wgpu_render_state {
                 app.set_wgpu(rs, eframe::egui_wgpu::depth_format_from_bits(0, STENCIL_BITS));
             }
+            // clapp: the agent's requests and upstream's own `--control` port share one queue.
+            let _ = clapp_ctx.set(cc.egui_ctx.clone());
+            if let Some(rx) = clapp_rx.take() {
+                app = app.with_control(rx);
+            }
             if let Some(port) = control_port {
                 let rx = control_server::start(port, cc.egui_ctx.clone());
-                app = app.with_control(rx);
+                let tx = clapp_tx.clone();
+                let _ = std::thread::Builder::new().name("control-relay".into()).spawn(move || {
+                    for req in rx {
+                        if tx.send(req).is_err() {
+                            break;
+                        }
+                    }
+                });
             }
             if sample {
                 let _ = app.run("ui.sample", serde_json::json!({}));
@@ -372,6 +435,8 @@ fn main() -> eframe::Result {
                 workspace_error,
                 #[cfg(target_os = "macos")]
                 native_menu: None,
+                observer: clapp::signals::Observer::new(clapp_control.clone()),
+                recovery: clapp::recovery::Recovery::default(),
             }))
         }),
     )

@@ -13,7 +13,7 @@
 //! are profile settings: process-wide, not saved in the drawing.
 
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, Weak};
 
 use cadcraft_doc::Drawing;
@@ -35,6 +35,16 @@ const HEARTBEAT_SECS: f64 = 60.0;
 
 static SAVETIME: AtomicU32 = AtomicU32::new(DEFAULT_SAVETIME);
 static SAVEFILEPATH: Mutex<String> = Mutex::new(String::new());
+/// clapp: set when the launcher runs one instance of the app at a time (Clatch does), so another
+/// instance's lock file cannot mean it is still running.
+static SINGLE_INSTANCE: AtomicBool = AtomicBool::new(false);
+
+/// clapp: the launcher runs one instance at a time: Drawing Recovery offers the files another
+/// instance left at once, instead of after its lock goes stale ([`STALE_LOCK_SECS`]). A relaunch
+/// moments after the launcher stopped the app is the usual case there.
+pub fn set_single_instance(on: bool) {
+    SINGLE_INSTANCE.store(on, Ordering::Relaxed);
+}
 
 /// SAVETIME: minutes between autosaves; 0 turns autosave off.
 pub fn savetime() -> u32 {
@@ -266,7 +276,21 @@ mod native {
     /// Whether the app instance that owns a lock file modified `age` ago (`None`: no lock file)
     /// may still be running.
     pub fn instance_alive(age: Option<Duration>) -> bool {
-        age.is_some_and(|a| a < Duration::from_secs(STALE_LOCK_SECS))
+        alive(age, SINGLE_INSTANCE.load(Ordering::Relaxed))
+    }
+
+    /// [`instance_alive`] with the clapp's one-instance launcher passed in.
+    fn alive(age: Option<Duration>, single_instance: bool) -> bool {
+        !single_instance && age.is_some_and(|a| a < Duration::from_secs(STALE_LOCK_SECS))
+    }
+
+    #[cfg(test)]
+    #[test]
+    fn under_a_one_instance_launcher_another_lock_is_never_alive() {
+        let fresh = Some(Duration::from_secs(1));
+        assert!(alive(fresh, false), "a fresh lock is a running app");
+        assert!(!alive(fresh, true), "Clatch runs one instance: the lock was left by a stopped one");
+        assert!(!alive(Some(Duration::from_secs(STALE_LOCK_SECS + 1)), false));
     }
 
     fn lock_age(dir: &Path, instance: &str) -> Option<Duration> {
