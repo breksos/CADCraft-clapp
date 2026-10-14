@@ -331,6 +331,12 @@ fn window(args: Vec<String>, wiring: clapp::wiring::Wiring) -> eframe::Result {
     if let Some(icon) = app_icon() {
         options.viewport = options.viewport.with_icon(icon);
     }
+    // clapp: under Clatch, eframe's storage (the preferences, SAVETIME, SAVEFILEPATH, the profile)
+    // lives in the app's data directory too. Its default folder is shared with any other CADCraft
+    // on the machine, whose SAVEFILEPATH the clapp would then autosave into (measured).
+    if let Some(dir) = std::env::var_os("CLATCH_DATA_DIR").filter(|d| !d.is_empty()) {
+        options.persistence_path = Some(std::path::PathBuf::from(dir));
+    }
     // Before eframe creates the wgpu instance: default Windows to DirectX 12 with FXC (see graphics.rs).
     #[cfg(target_os = "windows")]
     graphics::configure(&mut options, eframe::wgpu::Backends::from_env(), eframe::wgpu::Dx12Compiler::from_env());

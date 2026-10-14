@@ -102,6 +102,9 @@ Found by driving the running app, not by reading its docs:
   a grant of `run` is never a grant of the person's files.
 - **Profile variables are the person's** (snaps, grid, pick box: `options::PROFILE_VARS`), as
   are SAVETIME, SAVEFILEPATH, QNEWTEMPLATE, the clipboard, aliases, plotter setups and `ui.*`.
+- **eframe keeps the preferences (SAVETIME, SAVEFILEPATH, the profile) in its own folder**,
+  shared with any other CADCraft on the machine: the installed clapp autosaved into another
+  run's SAVEFILEPATH. Under Clatch that storage is in `CLATCH_DATA_DIR` too.
 - **A control-channel `ui.pointer` click runs inside `logic`**, while `ui.click` is real input
   handled in `ui`: only the latter counts as the person's for the signals.
 
@@ -113,7 +116,7 @@ carry only these, each marked `clapp:`:
 
 | file | change |
 |---|---|
-| `apps/cadcraft/src/main.rs` | role dispatch and the bootstrap; the signal observer and the recovery tick around `logic` and `ui`; settings in `CLATCH_DATA_DIR`; one-instance recovery under Clatch; no `windows_subsystem` (the CLI needs a console) |
+| `apps/cadcraft/src/main.rs` | role dispatch and the bootstrap; the signal observer and the recovery tick around `logic` and `ui`; settings, and eframe's storage, in `CLATCH_DATA_DIR`; one-instance recovery under Clatch; no `windows_subsystem` (the CLI needs a console) |
 | `apps/cadcraft/Cargo.toml` | `clappkit` (core only) and `tokio` |
 | `crates/engine/src/autosave.rs` | `set_single_instance`, off unless Clatch launched the window |
 | `Cargo.toml` | `clappkit` excluded from the workspace (it has its own) |
@@ -135,12 +138,15 @@ CLATCH_STANDALONE=1 cargo run -p cadcraft -- app    # the window, without Clatch
 agree. `cargo xtask ci` is upstream's own gate. `pkg/` and `*.clapp` are build output, never
 committed. Push a `v*` tag and the release workflow publishes one `.clapp` per platform.
 
+Verified under a live Clatch daemon too: `clatch install`, `run`, the CLI against the
+Clatch-launched window, and `clatch stop` with unsaved work (its autosave file written seconds
+before, kept for Drawing Recovery). `npm run verify` launches the window standalone, outside
+Clatch, so that run uses upstream's own settings folders.
+
 Based on CADCraft's `main` at workspace version 0.6.2.
 
 ## Not done yet
 
-- **Under a live Clatch.** Verified against a stand-in for the daemon's pipe; `clatch install`,
-  `run` and `stop` still to be checked on a running daemon.
 - **Windows** is built by the workflows but not yet run.
 - **A LISP routine the person runs** advances a slice per frame inside `logic`, so its changes
   are taken for the agent's and not signalled.
