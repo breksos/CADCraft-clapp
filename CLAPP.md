@@ -82,6 +82,15 @@ The rest is upstream's: the `.sv$` files in `<data dir>/autosave/`, deleting one
 drawing is saved or closed, and the Drawing Recovery window, which opens each drawing as an
 unsaved copy with no file name.
 
+## Not an ArtCraft product
+
+ArtCraft's brand terms (`docs/brand/LICENSE-brand.txt`) let anyone say, in plain text, that a
+work is based on the app by the ArtCraft team, and ask a published modified version to carry
+none of the ArtCraft marks and never present itself as an ArtCraft product or suggest ArtCraft
+supports it. So this fork has no ArtCraft logos, its About box and menu link this repository
+and upstream's source instead of ArtCraft's site and Discord, and its store text says "based
+on". The app's own name and icon are upstream's MIT/Apache-licensed work (`ATTRIBUTION.md`).
+
 ## Updates come from Clatch
 
 CADCraft can update itself (`craft_update`: a startup check, "Update and Restart", Help ▸ Check
@@ -128,6 +137,8 @@ carry only these, each marked `clapp:`:
 |---|---|
 | `apps/cadcraft/src/main.rs` | role dispatch and the bootstrap (the window role hands upstream's `launch_args` its arguments without `app`); the signal observer and the recovery tick around `logic` and `ui`; eframe's storage in `CLATCH_DATA_DIR`; one-instance recovery and no self-update under Clatch; no `windows_subsystem` (the CLI needs a console) |
 | `apps/cadcraft/src/env.rs` | the settings folder (logs, autosave, workspace) is `CLATCH_DATA_DIR` under Clatch, unless `CADCRAFT_CONFIG_DIR` says otherwise |
+| `crates/ui-egui/src/dialogs.rs`, `apps/cadcraft/src/native_menu.rs` | the About box and the app menu say "based on CADCraft by the ArtCraft team" and link this repository and upstream's source, not ArtCraft's site and Discord |
+| `README.md`, `NOTICE`, `ATTRIBUTION.md`, `docs/brand/` | the ArtCraft logos removed (their terms keep in `docs/brand/LICENSE-brand.txt`) |
 | `crates/ui-egui/src/updates_ui.rs` | `updates_come_from`: under Clatch CADCraft never checks for, offers or installs an update itself; Help ▸ Check for Updates… says updates come from Clatch |
 | `apps/cadcraft/Cargo.toml` | `clappkit` (core only) and `tokio` |
 | `crates/engine/src/autosave.rs` | `set_single_instance`, off unless Clatch launched the window |

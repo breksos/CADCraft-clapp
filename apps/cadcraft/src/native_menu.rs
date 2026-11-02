@@ -52,7 +52,9 @@ impl NativeMenu {
         let mut counter = 0usize;
         let app_menu = Submenu::new("CADCraft", true);
         let about = MenuItem::with_id("cc-about", i18n::tr(language, "About CADCraft"), true, None);
-        let discord = MenuItem::with_id("cc-discord", i18n::tr(language, "Join the ArtCraft Discord…"), true, None);
+        // clapp: this modified version's own page, where upstream links ArtCraft's Discord
+        // (docs/brand/LICENSE-brand.txt).
+        let discord = MenuItem::with_id("cc-discord", "CADCraft Clapp on GitHub…", true, None);
         let predefined = vec![
             ("Services", PredefinedMenuItem::services(Some(i18n::tr(language, "Services")))),
             ("Hide CADCraft", PredefinedMenuItem::hide(Some(i18n::tr(language, "Hide CADCraft")))),
@@ -70,7 +72,7 @@ impl NativeMenu {
             }
         }
         items.insert("cc-about".into(), ("ui.dialog.about".into(), "About CADCraft".into(), about));
-        items.insert("cc-discord".into(), ("ui.discord".into(), "Join the ArtCraft Discord…".into(), discord));
+        items.insert("cc-discord".into(), ("ui.discord".into(), "CADCraft Clapp on GitHub…".into(), discord));
         items.insert("cc-settings".into(), ("options".into(), "Settings...".into(), settings));
         let _ = menu.append(&app_menu);
         for (title, entries) in menus::tree(app) {
@@ -116,7 +118,7 @@ impl NativeMenu {
         while let Ok(ev) = self.events.try_recv() {
             if let Some((cmd, _, _)) = self.items.get(ev.id.as_ref()) {
                 if cmd == "ui.discord" {
-                    ctx.open_url(egui::OpenUrl::new_tab("https://discord.gg/artcraft"));
+                    ctx.open_url(egui::OpenUrl::new_tab("https://github.com/breksos/CADCraft-clapp"));
                 } else {
                     menus::activate_native(app, ctx, &cmd.clone());
                 }

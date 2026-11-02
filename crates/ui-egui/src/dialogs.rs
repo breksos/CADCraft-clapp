@@ -345,9 +345,12 @@ fn about(ctx: &egui::Context, open: &mut bool) {
                     ui.label(crate::tf!("Version {version}", version = env!("CARGO_PKG_VERSION")));
                     ui.label(crate::tl!("Computer-aided design and drafting: an open-source, clean-room CAD application written in pure Rust."));
                     ui.add_space(6.0);
-                    ui.label(RichText::new(crate::tl!("One of the Crafting Apps by the ArtCraft team and community.")).color(t.text_dim));
-                    ui.hyperlink_to("getartcraft.com/apps/cadcraft", "https://getartcraft.com/apps/cadcraft");
-                    ui.hyperlink_to(crate::tl!("Join us on Discord"), "https://discord.gg/artcraft");
+                    // clapp: a modified version may say, in plain text, that it is based on CADCraft by
+                    // the ArtCraft team, and must not present itself as an ArtCraft product or send its
+                    // users to ArtCraft for support (docs/brand/LICENSE-brand.txt).
+                    ui.label(RichText::new("A Clatch app, based on CADCraft by the ArtCraft team.").color(t.text_dim));
+                    ui.hyperlink_to("github.com/breksos/CADCraft-clapp", "https://github.com/breksos/CADCraft-clapp");
+                    ui.hyperlink_to("Upstream: github.com/storytold/cadcraft", "https://github.com/storytold/cadcraft");
                     ui.add_space(6.0);
                     ui.label(RichText::new(crate::tl!("MIT OR Apache-2.0. Not affiliated with Autodesk, Inc.")).small().color(t.text_faint));
                 }
