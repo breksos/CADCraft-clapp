@@ -135,7 +135,7 @@ carry only these, each marked `clapp:`:
 | `AGENTS.md` | a pointer to this file |
 | `ATTRIBUTION.md` | rows for `assets/icon.png` and `assets/icon-dock.png` |
 | `.gitignore` | `pkg/` and `*.clapp` |
-| `.github/workflows/` | upstream's removed, including ones it adds later (ast-grep, FreeBSD, Nix, SonarCloud, Windows ARM64 so far): they would run on this fork's Actions minutes; template-clapp's CI (manual) and release (on a `v*` tag) in their place |
+| `.github/workflows/` | upstream's removed, including ones it adds later (ast-grep, FreeBSD, Nix, SonarCloud, Windows ARM64 so far) and Dependabot, which would open pull requests here: they would run on this fork's Actions minutes; template-clapp's CI (manual) and release (on a `v*` tag) in their place |
 
 ## Build, verify, ship
 
