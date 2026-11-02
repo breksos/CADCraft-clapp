@@ -22,7 +22,7 @@ pub mod signals;
 pub mod wiring;
 
 /// The app's id: `clatch.json`'s `id`.
-pub const APP_ID: &str = "com.arfium.cadcraft";
+pub const APP_ID: &str = "com.breksos.cadcraft";
 /// The agent's shorthand: `clatch.json`'s `connector.cli`, and the socket's name.
 pub const CLI: &str = "cadcraft";
 

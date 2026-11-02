@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "type": "clapp",
-  "id": "com.arfium.cadcraft",
+  "id": "com.breksos.cadcraft",
   "name": "CADCraft",
   "description": "2D drafting you and your agent do together: CADCraft, with a CLI into its live window.",
   "about": "CADCraft, the open-source 2D CAD app written in Rust, with a second pair of hands. You draft in its window as you always would: the command line, snaps, layers, blocks, dimensions, hatches, layouts, real DWG and DXF files. Your agent works on the same drawing through its own commands: it reads entities and their geometry, types command lines just as you would, runs any of CADCraft's commands, and opens, saves, exports and imports drawings, and every change shows in your window as it happens, on the same undo history as yours. It keeps up with you, too: what you draw and what you select reach it, so 'fix these' means the entities you selected. It never types into a command you are in the middle of, never closes or overwrites work you have not saved, and never changes your settings or your clipboard. Unsaved work survives CADCraft being stopped: it comes back in the Drawing Recovery window. Based on CADCraft by the ArtCraft team (github.com/storytold/cadcraft), under the MIT or Apache-2.0 licence; not an ArtCraft product.",

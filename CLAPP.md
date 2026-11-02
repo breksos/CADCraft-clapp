@@ -153,7 +153,7 @@ carry only these, each marked `clapp:`:
 ```sh
 git clone --recurse-submodules <this repository>
 npm run verify          # build -> package -> clatch validate -> CLI <-> window round-trip
-npm run pack            # pkg/ -> com.arfium.cadcraft-<os>-<arch>.clapp
+npm run pack            # pkg/ -> com.breksos.cadcraft-<os>-<arch>.clapp
 CLATCH_STANDALONE=1 cargo run -p cadcraft -- app    # the window, without Clatch
 ```
 
