@@ -155,7 +155,11 @@ async fn dispatch(raw: Vec<String>) -> Res<()> {
         return Ok(());
     }
     // `cmd` passes its line through untouched: `--` or `""` mean something at the command line.
-    let a = if verb == "cmd" { Args { words: Vec::new(), flags: HashMap::new() } } else { Args::parse(raw.clone(), &["selected", "view", "metric", "sample", "json", "help"])? };
+    let a = if verb == "cmd" {
+        Args { words: Vec::new(), flags: HashMap::new() }
+    } else {
+        Args::parse(raw.clone(), &["selected", "view", "metric", "sample", "json", "help"])?
+    };
     if a.on("help") {
         println!("{HELP}");
         return Ok(());

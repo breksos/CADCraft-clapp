@@ -82,6 +82,13 @@ The rest is upstream's: the `.sv$` files in `<data dir>/autosave/`, deleting one
 drawing is saved or closed, and the Drawing Recovery window, which opens each drawing as an
 unsaved copy with no file name.
 
+## Updates come from Clatch
+
+CADCraft can update itself (`craft_update`: a startup check, "Update and Restart", Help ▸ Check
+for Updates…). Under Clatch that would rewrite the installed depot behind Clatch's back, so the
+window never checks, offers or installs an update there; the menu item says to update in
+Clatch. Outside Clatch, upstream's updater works as before.
+
 ## What was measured, and the rule it became
 
 Found by driving the running app, not by reading its docs:
@@ -100,6 +107,9 @@ Found by driving the running app, not by reading its docs:
   `!name`; `run` refuses `lisp`, `appload` and `script`.
 - **Every disk access is a `path`, `file` or `output` parameter.** `run` refuses them all, so
   a grant of `run` is never a grant of the person's files.
+- **`cutbase` (new in 0.16) cuts to the clipboard**, like `cutclip`: refused.
+- **Upstream's TCP control port now needs a token**; the clapp never uses that port (its
+  requests go onto the same in-process queue), so nothing changes for the agent.
 - **Profile variables are the person's** (snaps, grid, pick box: `options::PROFILE_VARS`), as
   are SAVETIME, SAVEFILEPATH, QNEWTEMPLATE, the clipboard, aliases, plotter setups and `ui.*`.
 - **eframe keeps the preferences (SAVETIME, SAVEFILEPATH, the profile) in its own folder**,
@@ -116,14 +126,16 @@ carry only these, each marked `clapp:`:
 
 | file | change |
 |---|---|
-| `apps/cadcraft/src/main.rs` | role dispatch and the bootstrap; the signal observer and the recovery tick around `logic` and `ui`; settings, and eframe's storage, in `CLATCH_DATA_DIR`; one-instance recovery under Clatch; no `windows_subsystem` (the CLI needs a console) |
+| `apps/cadcraft/src/main.rs` | role dispatch and the bootstrap (the window role hands upstream's `launch_args` its arguments without `app`); the signal observer and the recovery tick around `logic` and `ui`; eframe's storage in `CLATCH_DATA_DIR`; one-instance recovery and no self-update under Clatch; no `windows_subsystem` (the CLI needs a console) |
+| `apps/cadcraft/src/env.rs` | the settings folder (logs, autosave, workspace) is `CLATCH_DATA_DIR` under Clatch, unless `CADCRAFT_CONFIG_DIR` says otherwise |
+| `crates/ui-egui/src/updates_ui.rs` | `updates_come_from`: under Clatch CADCraft never checks for, offers or installs an update itself; Help ▸ Check for Updates… says updates come from Clatch |
 | `apps/cadcraft/Cargo.toml` | `clappkit` (core only) and `tokio` |
 | `crates/engine/src/autosave.rs` | `set_single_instance`, off unless Clatch launched the window |
 | `Cargo.toml` | `clappkit` excluded from the workspace (it has its own) |
 | `AGENTS.md` | a pointer to this file |
 | `ATTRIBUTION.md` | rows for `assets/icon.png` and `assets/icon-dock.png` |
 | `.gitignore` | `pkg/` and `*.clapp` |
-| `.github/workflows/` | upstream's removed (they would run on this fork's Actions minutes); template-clapp's CI (manual) and release (on a `v*` tag) in their place |
+| `.github/workflows/` | upstream's removed, including ones it adds later (ast-grep, FreeBSD, Nix, SonarCloud, Windows ARM64 so far): they would run on this fork's Actions minutes; template-clapp's CI (manual) and release (on a `v*` tag) in their place |
 
 ## Build, verify, ship
 
@@ -143,7 +155,9 @@ Clatch-launched window, and `clatch stop` with unsaved work (its autosave file w
 before, kept for Drawing Recovery). `npm run verify` launches the window standalone, outside
 Clatch, so that run uses upstream's own settings folders.
 
-Based on CADCraft's `main` at workspace version 0.6.2.
+Based on CADCraft's `main` at workspace version 0.16.0 (upstream `dae4b7b`). Updating: merge
+`upstream/main`, keep this fork's workflows, then re-check the commands upstream added against
+`rules.rs` and the measurements above (`cadcraft commands` shows what `run` reaches).
 
 ## Not done yet
 

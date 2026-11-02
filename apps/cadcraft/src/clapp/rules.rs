@@ -41,6 +41,7 @@ pub const NEVER: &[(&str, &str)] = &[
     ("stylesmanager", "plot style tables are the person's"),
     ("copyclip", "the clipboard is the person's"),
     ("cutclip", "the clipboard is the person's"),
+    ("cutbase", "the clipboard is the person's"),
     ("copybase", "the clipboard is the person's"),
     ("pasteclip", "the clipboard is the person's"),
     ("pasteorig", "the clipboard is the person's"),
@@ -151,6 +152,10 @@ mod tests {
         assert!(run("close", &json!({})).is_err(), "close throws unsaved work away");
         assert!(run("CLOSE", &json!({})).is_err());
         assert!(run("ui.theme.dark", &json!({})).is_err());
+        assert!(run("ui.updates.check", &json!({})).is_err(), "updates come from Clatch");
+        assert!(run("cutbase", &json!({"base": [0, 0]})).is_err(), "the clipboard");
+        assert!(run("-wblock", &json!({"path": "/x/b.dwg", "name": "B"})).is_err());
+        assert!(run("layout.saveas", &json!({"path": "/x/t.dwt"})).is_err());
         assert!(run("insert", &json!({"name": "Door"})).is_ok(), "a block already in the drawing");
         assert!(run("insert", &json!({"name": "Door", "file": "/x/door.dwg"})).is_err(), "a block from disk");
         assert!(run("wblock", &json!({"path": "/x/b.dwg", "name": "B"})).is_err());
