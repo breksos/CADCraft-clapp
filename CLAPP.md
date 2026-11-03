@@ -146,7 +146,7 @@ carry only these, each marked `clapp:`:
 | `AGENTS.md` | a pointer to this file |
 | `ATTRIBUTION.md` | rows for `assets/icon.png` and `assets/icon-dock.png` |
 | `.gitignore` | `pkg/` and `*.clapp` |
-| `.github/workflows/` | upstream's removed, including ones it adds later (ast-grep, FreeBSD, Nix, SonarCloud, Windows ARM64 so far) and Dependabot, which would open pull requests here: they would run on this fork's Actions minutes; template-clapp's CI (manual) and release (on a `v*` tag) in their place |
+| `.github/workflows/` | upstream's removed, including ones it adds later (ast-grep, FreeBSD, Nix, SonarCloud, Windows ARM64 so far) and Dependabot, which would open pull requests here: they would run on this fork's Actions minutes; template-clapp's CI (manual) and release (on a `clapp-v*` tag; `v*` names are upstream's) in their place |
 
 ## Build, verify, ship
 
@@ -159,7 +159,7 @@ CLATCH_STANDALONE=1 cargo run -p cadcraft -- app    # the window, without Clatch
 
 `npm run check` checks that `clatch.json`, the CLI's verbs and help, and the emitted signals
 agree. `cargo xtask ci` is upstream's own gate. `pkg/` and `*.clapp` are build output, never
-committed. Push a `v*` tag and the release workflow publishes one `.clapp` per platform.
+committed. Push a `clapp-v*` tag (for example `clapp-v0.1.0`, the manifest's version) and the release workflow publishes one `.clapp` per platform.
 
 Verified under a live Clatch daemon too: `clatch install`, `run`, the CLI against the
 Clatch-launched window, and `clatch stop` with unsaved work (its autosave file written seconds
